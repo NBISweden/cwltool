@@ -13,6 +13,11 @@ import pipes
 import logging
 import schema_salad.ref_resolver
 from typing import Any, Union
+try:
+    import coverage
+    coverage.process_startup()
+except ImportError:
+    pass
 
 _logger = logging.getLogger("cwltest")
 _logger.addHandler(logging.StreamHandler())
@@ -61,6 +66,10 @@ def compare(a, b):  # type: (Any, Any) -> bool
 def run_test(args, i, t):  # type: (argparse.Namespace, Any, Dict[str,str]) -> int
     out = {}  # type: Dict[str,Any]
     outdir = None
+    if 'COVERAGE_PROCESS_START' in os.environ:
+        env = {'COVERAGE_PROCESS_START': os.environ['COVERAGE_PROCESS_START']}
+    else:
+        env = None
     try:
         if "output" in t:
             test_command = [args.tool]
@@ -74,7 +83,7 @@ def run_test(args, i, t):  # type: (argparse.Namespace, Any, Dict[str,str]) -> i
                                  "--quiet",
                                  t["tool"],
                                  t["job"]])
-            outstr = subprocess.check_output(test_command)
+            outstr = subprocess.check_output(test_command, env=env)
             out = {"output": json.loads(outstr)}
         else:
             test_command = [args.tool,
@@ -85,7 +94,7 @@ def run_test(args, i, t):  # type: (argparse.Namespace, Any, Dict[str,str]) -> i
                             t["tool"],
                             t["job"]]
 
-            outstr = subprocess.check_output(test_command)
+            outstr = subprocess.check_output(test_command, env=env)
             out = yaml.load(outstr)
     except ValueError as v:
         _logger.error(str(v))

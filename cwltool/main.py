@@ -23,6 +23,12 @@ from .process import shortname, Process
 import rdflib
 from .utils import aslist
 from typing import Union, Any, cast, Callable, Tuple, IO
+try:
+    import coverage
+    coverage.process_startup()
+except ImportError:
+    pass
+
 
 _logger = logging.getLogger("cwltool")
 
